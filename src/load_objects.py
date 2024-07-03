@@ -11,6 +11,7 @@ from models.chai_model import Chai_Evaluator, ChaiModel, ChaiPolicy
 from utils.cache import Cache
 from utils.misc import convert_path
 from models.gpt2_optional_final_ln import GPT2LMHeadModel, GPT2Config, GPT2Model
+from transformers import AutoModelForCausalLM, LlamaConfig, AutoConfig, LlamaForCausalLM
 
 registry = {}
 cache = {}
@@ -67,11 +68,26 @@ def load_gpt2(config, verbose=True):
     config = GPT2Config.from_pretrained(config['gpt2_type'])
     return obj(config)
 
+@register('llama')
+def load_llama(config, verbose=True):
+    obj = LlamaForCausalLM
+    if config['from_pretrained']:
+        return obj.from_pretrained(config['llama_type'], attn_implementation="eager")
+    config = AutoConfig.from_pretrained(config['llama_type'])
+    return obj(config)
+
 @register('bc_lm')
 def load_bc_lm(config, device, verbose=True):
     gpt2 = load_item(config['gpt2'], verbose=verbose)
     dataset = load_item(config['dataset'], device, verbose=verbose)
     model = BC_LM(gpt2, dataset, device, config['transition_weight'])
+    return load_model(config['load'], model, device, verbose=verbose)
+
+@register('bc_llama')
+def load_bc_llama(config, device, verbose=True):
+    llama = load_item(config['llama'], verbose=verbose)
+    dataset = load_item(config['dataset'], device, verbose=verbose)
+    model = BC_LM(llama, dataset, device, config['transition_weight'])
     return load_model(config['load'], model, device, verbose=verbose)
 
 @register('bc_policy')
@@ -97,11 +113,36 @@ def load_per_token_iql(config, device, verbose=True):
                         config['cql_temp'])
     return load_model(config['load'], model, device, verbose=verbose)
 
+@register('per_token_iql_llama')
+def load_per_token_iql_llama(config, device, verbose=True):
+    llama = load_item(config['llama'], verbose=verbose)
+    dataset = load_item(config['dataset'], device, verbose=verbose)
+    model = PerTokenIQL(llama, dataset, device, config['alpha'], config['gamma'], 
+                        config['beta'], config['transition_weight'], config['clip_weight'], 
+                        config['value_max'], config['value_min'], config['detach_v'], 
+                        config['detach_pi'], config['detach_q'], config['double_q'], 
+                        config['tau'], config['seperate_policy'], config['seperate_target'], 
+                        config['exp_weights'], config['dm_margin'], config['advanced_mlp'], 
+                        config['cql_temp'])
+    return load_model(config['load'], model, device, verbose=verbose)
+
 @register('per_token_cql')
 def load_per_token_cql(config, device, verbose=True):
     gpt2 = load_item(config['gpt2'], verbose=verbose)
     dataset = load_item(config['dataset'], device, verbose=verbose)
     model = CQLModel(gpt2, dataset, device, config['alpha'], config['gamma'], 
+                     config['beta'], config['transition_weight'], config['clip_weight'], 
+                     config['value_max'], config['value_min'], config['detach_v'], 
+                     config['detach_pi'], config['detach_q'], config['double_q'], 
+                     config['seperate_policy'], config['seperate_target'], config['exp_weights'], 
+                     config['advanced_mlp'], config['cql_temp'])
+    return load_model(config['load'], model, device, verbose=verbose)
+
+@register('per_token_cql_llama')
+def load_per_token_cql_llama(config, device, verbose=True):
+    llama = load_item(config['llama'], verbose=verbose)
+    dataset = load_item(config['dataset'], device, verbose=verbose)
+    model = CQLModel(llama, dataset, device, config['alpha'], config['gamma'], 
                      config['beta'], config['transition_weight'], config['clip_weight'], 
                      config['value_max'], config['value_min'], config['detach_v'], 
                      config['detach_pi'], config['detach_q'], config['double_q'], 
@@ -121,11 +162,35 @@ def load_per_token_bcq(config, device, verbose=True):
                      config['advanced_mlp'], config['cql_temp'])
     return load_model(config['load'], model, device, verbose=verbose)
 
+@register('per_token_bcq_llama')
+def load_per_token_bcq_llama(config, device, verbose=True):
+    llama = load_item(config['llama'], verbose=verbose)
+    dataset = load_item(config['dataset'], device, verbose=verbose)
+    model = BCQModel(llama, dataset, device, config['alpha'], config['gamma'], 
+                     config['beta'], config['transition_weight'], config['clip_weight'], 
+                     config['value_max'], config['value_min'], config['detach_v'], 
+                     config['detach_pi'], config['detach_q'], config['double_q'], 
+                     config['seperate_policy'], config['seperate_target'], config['exp_weights'], 
+                     config['advanced_mlp'], config['cql_temp'])
+    return load_model(config['load'], model, device, verbose=verbose)
+
 @register('per_token_psi')
 def load_per_token_psi(config, device, verbose=True):
     gpt2 = load_item(config['gpt2'], verbose=verbose)
     dataset = load_item(config['dataset'], device, verbose=verbose)
     model = PsiModel(gpt2, dataset, device, config['alpha'], config['gamma'], 
+                     config['beta'], config['transition_weight'], config['clip_weight'], 
+                     config['value_max'], config['value_min'], config['detach_v'], 
+                     config['detach_pi'], config['detach_q'], config['double_q'], 
+                     config['seperate_policy'], config['seperate_target'], config['exp_weights'], 
+                     config['advanced_mlp'], config['cql_temp'])
+    return load_model(config['load'], model, device, verbose=verbose)
+
+@register('per_token_psi_llama')
+def load_per_token_psi_llama(config, device, verbose=True):
+    llama = load_item(config['llama'], verbose=verbose)
+    dataset = load_item(config['dataset'], device, verbose=verbose)
+    model = PsiModel(llama, dataset, device, config['alpha'], config['gamma'], 
                      config['beta'], config['transition_weight'], config['clip_weight'], 
                      config['value_max'], config['value_min'], config['detach_v'], 
                      config['detach_pi'], config['detach_q'], config['double_q'], 
@@ -145,6 +210,18 @@ def load_per_token_g(config, device, verbose=True):
                    config['advanced_mlp'], config['cql_temp'])
     return load_model(config['load'], model, device, verbose=verbose)
 
+@register('per_token_g_llama')
+def load_per_token_g_llama(config, device, verbose=True):
+    llama = load_item(config['llama'], verbose=verbose)
+    dataset = load_item(config['dataset'], device, verbose=verbose)
+    model = GModel(llama, dataset, device, config['alpha'], config['gamma'], 
+                   config['beta'], config['transition_weight'], config['clip_weight'], 
+                   config['value_max'], config['value_min'], config['detach_v'], 
+                   config['detach_pi'], config['detach_q'], config['double_q'], 
+                   config['seperate_policy'], config['seperate_target'], config['exp_weights'], 
+                   config['advanced_mlp'], config['cql_temp'])
+    return load_model(config['load'], model, device, verbose=verbose)
+
 @register('per_utterance_iql')
 def load_per_utterance_iql(config, device, verbose=True):
     gpt2 = load_item(config['gpt2'], verbose=verbose)
@@ -157,9 +234,38 @@ def load_per_utterance_iql(config, device, verbose=True):
                             config['exp_weights'], config['advanced_mlp'])
     return load_model(config['load'], model, device, verbose=verbose)
 
+@register('per_utterance_iql_llama')
+def load_per_utterance_iql_llama(config, device, verbose=True):
+    llama = load_item(config['llama'], verbose=verbose)
+    dataset = load_item(config['dataset'], device, verbose=verbose)
+    model = PerUtteranceIQL(llama, dataset, device, config['alpha'], config['gamma'], 
+                            config['beta'], config['transition_weight'], config['clip_weight'], 
+                            config['value_max'], config['value_min'], config['detach_v'], 
+                            config['detach_pi'], config['detach_q'], config['double_q'], 
+                            config['tau'], config['seperate_policy'], config['seperate_target'], 
+                            config['exp_weights'], config['advanced_mlp'])
+    return load_model(config['load'], model, device, verbose=verbose)
+
 @register('chai_model')
 def load_chai_model(config, device, verbose=True):
     gpt2 = load_item(config['gpt2'], verbose=verbose)
+    dataset = load_item(config['dataset'], device, verbose=verbose)
+    if config['use_cache']:
+        cache = Cache()
+        if config['cache_path'] is not None:
+            if verbose:
+                print('loading generation cache from: %s' % convert_path(config['cache_path']))
+            cache.load(convert_path(config['cache_path']))
+            if verbose:
+                print('loaded.')
+    else:
+        cache = None
+    model = ChaiModel(dataset, device, gpt2, config['alpha'], config['gamma'], cache)
+    return load_model(config['load'], model, device, verbose=verbose)
+
+@register('chai_model_llama')
+def load_chai_model_llama(config, device, verbose=True):
+    llama = load_item(config['llama'], verbose=verbose)
     dataset = load_item(config['dataset'], device, verbose=verbose)
     if config['use_cache']:
         cache = Cache()
