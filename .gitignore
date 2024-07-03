@@ -1,6 +1,7 @@
 *.pyc
 __pycache__/
 scripts/train/results/
+scripts/eval/results/
 outputs/
 .env
 data/
