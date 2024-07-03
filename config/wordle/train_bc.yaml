@@ -21,7 +21,7 @@ model:
   transition_weight: 0.0
   dataset:
     name: wordle_human_dataset
-    cache_id: d
+    cache_id: d_train
   load:
     checkpoint_path: null
     strict_load: true
@@ -61,5 +61,5 @@ train:
   loss: {}
 
 wandb:
-  use_wandb: true
+  use_wandb: false
   wandb_project: wordle_iql
