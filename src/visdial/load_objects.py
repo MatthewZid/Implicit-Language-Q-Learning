@@ -1,6 +1,9 @@
 from visdial.visdial_base import PercentileCutoffRule, VisDialogueData
+from socraticdial.socraticdial_base import SocraticDialogueData
 from visdial.visdial_dataset import VisDialListDataset
+from socraticdial.socraticdial_dataset import SocraticDialListDataset
 from visdial.visdial_env import VDEnvironment, VDRemotePolicy
+from socraticdial.socraticdial_env import SDEnvironment, SDRemotePolicy
 from load_objects import *
 import pickle as pkl
 from visdial.visdial_evaluator import TopAdvantageUtterances, VisDial_Chai_Evaluator, VisDial_DT_Evaluator, VisDial_IQL_Evaluator, Utterance_VisDial_IQL_Evaluator
@@ -30,11 +33,40 @@ def load_vis_dial(config, verbose=True):
                            yn_reward=config['yn_reward'], 
                            yn_reward_kind=config['yn_reward_kind'])
 
+@register('socratic_dial')
+def load_socratic_dial(config, verbose=True):
+    if config['additional_scenes'] is not None:
+        with open(convert_path(config['additional_scenes']), 'rb') as f:
+            config['additional_scenes'] = pkl.load(f)
+    if config['cutoff_rule'] is not None:
+        config['cutoff_rule'] = load_item(config['cutoff_rule'], verbose=verbose)
+    return SocraticDialogueData(convert_path(config['data_path']), 
+                        #    convert_path(config['img_feat_path']), 
+                        #    config['split'], 
+                           reward_cache=convert_path(config['reward_cache']), 
+                        #    norm_img_feats=config['norm_img_feats'], 
+                           reward_shift=config['reward_shift'], 
+                           reward_scale=config['reward_scale'], 
+                           addition_scenes=config['additional_scenes'], 
+                           mode=config['mode'], 
+                           cutoff_rule=config['cutoff_rule'], 
+                           yn_reward=config['yn_reward'], 
+                           yn_reward_kind=config['yn_reward_kind'])
+
 @register('vis_dial_list_dataset')
 def load_vis_list_dataset(config, device, verbose=True):
     vd = load_item(config['data'], verbose=verbose)
     token_reward = load_item(config['token_reward'], device, verbose=verbose)
     return VisDialListDataset(vd, max_len=config['max_len'], 
+                              token_reward=token_reward, 
+                              top_p=config['top_p'], 
+                              bottom_p=config['bottom_p'])
+
+@register('socratic_dial_list_dataset')
+def load_socratic_list_dataset(config, device, verbose=True):
+    vd = load_item(config['data'], verbose=verbose)
+    token_reward = load_item(config['token_reward'], device, verbose=verbose)
+    return SocraticDialListDataset(vd, max_len=config['max_len'], 
                               token_reward=token_reward, 
                               top_p=config['top_p'], 
                               bottom_p=config['bottom_p'])
@@ -49,9 +81,23 @@ def load_vis_env(config, device, verbose=True):
                          yn_reward=config['yn_reward'], 
                          yn_reward_kind=config['yn_reward_kind'])
 
+@register('socratic_dial_env')
+def load_socratic_env(config, device, verbose=True):
+    dataset = load_item(config['dataset'], device, verbose=verbose)
+    return SDEnvironment(dataset, config['url'], 
+                         reward_shift=config['reward_shift'], 
+                         reward_scale=config['reward_scale'], 
+                         actor_stop=config['actor_stop'], 
+                         yn_reward=config['yn_reward'], 
+                         yn_reward_kind=config['yn_reward_kind'])
+
 @register('vis_dial_remote_policy')
 def load_vis_dial_remote_policy(config, device, verbose=True):
     return VDRemotePolicy(config['url'])
+
+@register('socratic_dial_remote_policy')
+def load_socratic_dial_remote_policy(config, device, verbose=True):
+    return SDRemotePolicy(config['url'])
 
 @register('top_advantage_utterances_evaluator')
 def load_top_advantage_utterances_evaluator(config, device, verbose=True):
