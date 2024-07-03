@@ -1,0 +1,10 @@
+defaults:
+ - /llama: llama_pretrained
+
+name: bc_llama
+dataset: null
+transition_weight: 0.0
+load:
+  name: bc_llama
+  checkpoint_path: null
+  strict_load: true

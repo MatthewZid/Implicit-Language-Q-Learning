@@ -1,0 +1,13 @@
+# defaults:
+#   - /cutoff_rule: percentile_cutoff_rule
+name: socratic_dial
+data_path: /home/vasters/titan-rl/SocraticDialogues.csv
+split: train
+# reward_cache: data/vis_dialogue/processed/visdial_0.5/train_reward_cache2.json
+reward_shift: 0.0
+reward_scale: 1.0
+additional_scenes: null
+mode: 10_stop
+cutoff_rule: null
+yn_reward: 0.0
+yn_reward_kind: none

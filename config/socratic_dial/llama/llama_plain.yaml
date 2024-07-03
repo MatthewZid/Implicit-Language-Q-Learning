@@ -1,0 +1,4 @@
+name: llama
+llama_type: meta-llama/Meta-Llama-3-8B
+from_pretrained: false
+lm_head: true

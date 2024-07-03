@@ -1,0 +1,5 @@
+name: llama
+llama_type: meta-llama/Llama-2-7b-chat-hf
+from_pretrained: true
+# lm_head: true
+lm_head: false

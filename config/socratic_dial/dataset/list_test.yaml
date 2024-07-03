@@ -1,0 +1,7 @@
+defaults:
+ - /socratic_dial@data: test
+ - /token_reward: constant
+name: socratic_dial_list_dataset
+max_len: null
+top_p: null
+bottom_p: null
