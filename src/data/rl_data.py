@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional
 import torch
 from data.language_environment import Language_Observation
 from data.tokenizer import Tokenizer
+import pandas as pd
 
 class TokenReward(ABC):
     @abstractmethod
@@ -65,6 +66,9 @@ class DataPoint:
     @classmethod
     def from_obs(cls, obs: Language_Observation, tokenizer: Tokenizer, token_reward: TokenReward, meta: Optional[Dict[str, Any]]=None):
         sequence, terminal = obs.to_sequence()
+        # sequence example: [('Bikes parked on the side of a street beside a fence.', None), ('how many bikes there?', -1.0), 
+        # ('3', None), ('what color are bikes?', -1.0), ('i see green red and white', None), ('are they parked on stock parking?', -3.0), 
+        # ('no', None), ('are there any people?', 0.0), ('2', None)]
         obs_meta = obs.metadata()
         if meta is not None and obs_meta is not None:
             meta = {**obs_meta, **meta}
@@ -84,6 +88,9 @@ class DataPoint:
                 action_rewards.append(r)
         if terminal:
             raw_str += tokenizer.id_to_token(tokenizer.eod_token_id)
+        # print(raw_str)
+        # print(tokenizer.tokenizer.convert_ids_to_tokens(tokenizer.encode(raw_str)[0]))
+        # exit(0)
         tokens = tokenizer.encode(raw_str)[0]
         token_rewards = token_reward.get_token_reward(tokens)
         state_idxs = []
