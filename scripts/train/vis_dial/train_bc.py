@@ -6,7 +6,7 @@ from omegaconf import DictConfig, OmegaConf
 import visdial.load_objects
 from bc_train_loop import train
 
-@hydra.main(config_path="../../../config/vis_dial", config_name="train_bc")
+@hydra.main(config_path="../../../config/socratic_dial", config_name="train_bc")
 def main(cfg : DictConfig):
     cfg = OmegaConf.to_container(cfg)
     train(cfg)
