@@ -16,7 +16,8 @@ def map_pytree(f: Callable[[Union[np.ndarray, torch.Tensor]], Any],
         return item
 
 def to(item: Any, device: torch.device):
-    return map_pytree(lambda x: torch.tensor(x).to(device), item)
+    # return map_pytree(lambda x: torch.tensor(x).to(device), item)
+    return map_pytree(lambda x: x.clone().detach().to(device), item)
 
 def to_decorator(f, device):
     def new_f(*args, **kwargs):
