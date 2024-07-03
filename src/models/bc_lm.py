@@ -9,6 +9,7 @@ from utils.torch_utils import get_transformer_logs
 import numpy as np
 from utils.sampling_utils import *
 from data.language_environment import Language_Environment, Language_Observation, Policy, interact_environment
+from transformers import LlamaForCausalLM
 
 class BC_LM(BaseTransformer):
     def __init__(self, 
@@ -18,8 +19,10 @@ class BC_LM(BaseTransformer):
                  transition_weight: float=0.0, 
                 ):
         assert isinstance(model, GPT2LMHeadModel)
+        # assert isinstance(model, LlamaForCausalLM)
         super().__init__(model, dataset, device)
         self.h_dim  = self.model.config.n_embd
+        # self.h_dim  = self.model.config.hidden_size   # for Llama model
         self.transition_weight = transition_weight
 
     def forward(self, 
@@ -45,6 +48,7 @@ class BC_LM(BaseTransformer):
         if remove_prefix_position_embs:
             prefix_embs -= self.model.transformer.wpe(position_ids[:, :prefix_embs.shape[1]])
         input_embeddings = torch.cat((prefix_embs, self.model.transformer.wte(tokens)), dim=1)
+        # input_embeddings = torch.cat((prefix_embs, self.model.model.embed_tokens(tokens)), dim=1)   # for Llama model
         # print(prefix_embs.shape, tokens.shape, map_pytree(lambda x: x.shape, kwargs['past_key_values'] if 'past_key_values' in kwargs else None))
         # print(input_embeddings.shape, tokens.shape, input_attn_mask.shape, position_ids)
         model_outputs = self.model(inputs_embeds=input_embeddings, 
@@ -73,11 +77,24 @@ class BC_LM(BaseTransformer):
 
     def get_loss(self, 
                  items: InputType):
+        # print("Items: ", items)
         prepared_inputs = self.prepare_inputs(items)
+        # print("Prepared Inputs: ", prepared_inputs)
+        # exit()
         tokens, attn_mask = prepared_inputs['tokens'], prepared_inputs['attn_mask']
         a_idx = prepared_inputs['action_idxs']
         model_outputs = self(tokens, attn_mask, 
                              output_attentions=True)
+        # print(tokens.size())
+        # print(len(tokens[0]))
+        # print(f'Input: {self.dataset.tokenizer.decode(tokens[0])}')
+        # print(model_outputs.logits.size())
+        # argmaxlist = []
+        # for i in range(model_outputs.logits.size(1)):
+        #     argmaxlist.append(model_outputs.logits[0,i,:].argmax().item())
+        # print(len(argmaxlist))
+        # print(f'Output: {self.dataset.tokenizer.decode(argmaxlist)}')
+        # exit(0)
         logs = {}
         transformer_logs = get_transformer_logs(model_outputs.attentions, 
                                                 self.model, 
