@@ -76,8 +76,8 @@ model:
     cache_id: d_train
   load:
     # checkpoint_path: outputs/visual_dialogue/visdial_iql_test2/model.pkl
-    # checkpoint_path: null
-    checkpoint_path: outputs/visual_dialogue/visdial_bc_official_test1/model_utterance_converted.pkl
+    checkpoint_path: null
+    # checkpoint_path: outputs/visual_dialogue/visdial_bc_official_test1/model_utterance_converted.pkl
     strict_load: false
 
 evaluator:
@@ -125,5 +125,5 @@ train:
     mc_returns: false
 
 wandb:
-  use_wandb: true
+  use_wandb: false
   wandb_project: visdial_iql
