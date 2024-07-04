@@ -181,6 +181,20 @@ class PerUtteranceIQL(PerTokenIQL):
         vs, qs = get_qvs_outputs['vs'], get_qvs_outputs['qs']
         vns, target_qs, rs = get_qvs_outputs['vns'], get_qvs_outputs['target_qs'], get_qvs_outputs['rs']
         terminals, logits, weights = get_qvs_outputs['terminals'], get_qvs_outputs['logits'], get_qvs_outputs['weights']
+
+        # print(model_outputs.keys())
+        # print(model_outputs['policy_model_outputs'].logits.size())
+
+        # print(tokens.size())
+        # print(len(tokens[0]))
+        # print(f'Input: {self.dataset.tokenizer.decode(tokens[0])}')
+        # print(model_outputs['policy_model_outputs'].logits.size())
+        # argmaxlist = []
+        # for i in range(model_outputs['policy_model_outputs'].logits.size(1)):
+        #     argmaxlist.append(model_outputs['policy_model_outputs'].logits[0,i,:].argmax().item())
+        # print(len(argmaxlist))
+        # print(f'Output: {self.dataset.tokenizer.decode(argmaxlist)}')
+        # exit(0)
         
         logs = {}
         transformer_logs = {}
